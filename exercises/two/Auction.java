@@ -1,6 +1,6 @@
 public class Auction {
 	
-	private int id;
+	private final int id;
 	private double currentBid;
 	private String owner;
 	private String name;
@@ -16,6 +16,12 @@ public class Auction {
 	public boolean equals(Object obj)
 	{
 		return ((Auction)obj).id == id;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return new Integer(id).hashCode();
 	}
 
 	@Override
