@@ -1,4 +1,4 @@
-package labs.two;
+package labs.three;
 
 public class OrPredicate implements IPredicate<Auction> {
 	

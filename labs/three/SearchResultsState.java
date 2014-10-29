@@ -1,4 +1,4 @@
-package labs.two;
+package labs.three;
 
 import java.util.Scanner;
 
@@ -8,8 +8,7 @@ public class SearchResultsState implements IState {
 	private IAuctionService ias;
 	private String username;
 	private String searchString;
-	private String consoleOutOne = "========================================";
-	private String consoleOutTwo = "===          Search Results          ===";
+	private static TableRowAuctionConverter trac = new TableRowAuctionConverter();
 	
 	public SearchResultsState(Scanner sc, IAuctionService ias, String username, String searchString) {
 		this.sc = sc;
@@ -22,30 +21,23 @@ public class SearchResultsState implements IState {
 	public void show() {
 		Auction[] matches = ias.search(searchString);
 		System.out.println(username + ", here are your search results:");
-		System.out.println(consoleOutOne);
-		System.out.println(consoleOutTwo);
-		System.out.println(consoleOutOne);
 		System.out.println("Number of matches:" + matches.length);
-		for(int i = 0; i < matches.length; i++) {
-			Auction a = matches[i];
-			if(a != null) {
-				System.out.println(a.toString());	
-			}
+		if(matches.length > 0) {
+			System.out.println(trac.formatAll(matches));
+			System.out.println("Enter the item id to increase the bid by $1. Otherwise, enter another search: (Hit enter to go back to home page)");
 		}
-		System.out.println(consoleOutOne);
-		System.out.println("Enter the item id to increase the bid by $1. Otherwise, enter another search: (Hit enter to go back to home page)");
 	}
 
 	@Override
 	public IState next() {
-		String response = sc.nextLine();
+		String response = sc.nextLine().trim();
 		if(response == null || response.isEmpty()) {
 			return new UserHomeState(sc, ias, username);
 		}
 		else {
-			int itemId;
+			long itemId;
 			try {
-				itemId = Integer.parseInt(response);
+				itemId = Long.parseLong(response);
 				ias.bid(username, itemId);
 				return new UserHomeState(sc, ias, username);
 			} catch (Exception e) {

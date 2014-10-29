@@ -1,15 +1,15 @@
-package labs.two;
+package labs.three;
 
 public class ObjectNotFoundException extends Exception {
 
 	private static final long serialVersionUID = 2148117709142601388L;
-	private Integer id;
+	private Long id;
 	
-	public ObjectNotFoundException(Integer id) {
+	public ObjectNotFoundException(Long id) {
 		this.id = id;
 	}
 	
-	public Integer getId() {
+	public Long getId() {
 		return this.id;
 	}
 

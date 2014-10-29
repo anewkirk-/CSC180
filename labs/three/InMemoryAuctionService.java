@@ -1,20 +1,39 @@
-package labs.two;
+package labs.three;
 
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Stack;
 
 public class InMemoryAuctionService implements IAuctionService {
-	private HashMap<Integer, Auction> auctionItems;
+	private HashMap<Long, Auction> auctionItems;
 	private Stack<SearchOperator> opStack = new Stack<SearchOperator>();
 	private Stack<IPredicate<Auction>> predStack = new Stack<IPredicate<Auction>>();
-	private static int nextId = 0;
-
+ 
 	public InMemoryAuctionService() {
-		this.auctionItems = new HashMap<Integer, Auction>();
-		create(new Auction(0000, "iPhone 5", 399.99));
-		create(new Auction(0001, "Samsung Galaxy Tab", 249.85));
-		create(new Auction(0002, "Google Nexus 5", 449.99));
-		create(new Auction(0003, "Google Nexus 10", 399.31));
+		this.auctionItems = new HashMap<Long, Auction>();
+		create(new Auction(0000L, "iPhone 5", 399.99));
+		create(new Auction(0001L, "Samsung Galaxy Tab", 249.85));
+		create(new Auction(0002L, "Google Nexus 5", 449.99));
+		create(new Auction(0003L, "Google Nexus 10", 399.31));
+	}
+	
+	public InMemoryAuctionService(String dataSource) {
+		this.auctionItems = new HashMap<Long, Auction>();
+		HtmlAuctionParser hap = new HtmlAuctionParser();
+		try {
+			List<Auction> auctions = hap.parsePage(dataSource);
+			for(Auction a : auctions) {
+				create(a);
+			}
+		} catch (IOException e) {
+			System.out.println("[!] Unable to parse auction data.\n\n");
+		}
+		
 	}
 
 	@Override
@@ -27,38 +46,50 @@ public class InMemoryAuctionService implements IAuctionService {
 			toReturn[count] = (Auction) o;
 			count++;
 		}
-		return toReturn;
+		return removeExpired(toReturn);
 		
+	}
+	
+	private Auction[] removeExpired(Auction[] a) {
+		ArrayList<Auction> result = new ArrayList<Auction>();
+		for(Auction auc : a) {
+			if(auc.getEndsBy().getTime() > Calendar.getInstance().getTime().getTime()) {
+				result.add(auc);
+			}
+		}
+		Object[] res = result.toArray();
+		Auction[] auctions = new Auction[res.length];
+		for(int i = 0; i < res.length; i++) {
+			auctions[i] = (Auction)res[i];
+		}
+		return auctions;
 	}
 
 	public Auction create(Auction auction) {
-		Auction a = new Auction(nextId, auction.getName(),
-				auction.getCurrentBid());
-		auctionItems.put(nextId, a);
-		nextId++;
+		auctionItems.put(auction.getId(), auction);
 		Auction res = null;
 		try {
-			res = retrieve(a.getId());
+			res = retrieve(auction.getId());
 		} catch (Exception e) {
 		}
 		return res;
 	}
 
-	public void delete(Integer id) {
+	public void delete(Long id) {
 		if (auctionItems.containsKey(id)) {
 			auctionItems.remove(id);
 		}
 	}
 
 	@Override
-	public Auction retrieve(Integer id) throws ObjectNotFoundException {
+	public Auction retrieve(Long id) throws ObjectNotFoundException {
 		if (auctionItems.containsKey(id)) {
 			return auctionItems.get(id);
 		}
 		throw new ObjectNotFoundException(id);
 	}
 
-	public Auction update(Auction auction, Integer id)
+	public Auction update(Auction auction, Long id)
 			throws IdMismatchException {
 		if (auction.getId() == id) {
 			auctionItems.put(id, auction);
@@ -68,18 +99,24 @@ public class InMemoryAuctionService implements IAuctionService {
 	}
 
 	@Override
-	public void bid(String username, int itemId) {
+	public void bid(String username, Long itemId) throws ExpiredBidException {
 		Auction a = auctionItems.get(itemId);
+		if(a.getEndsBy().getTime() < Calendar.getInstance().getTime().getTime()) {
+			throw new ExpiredBidException();
+		}
 		a.setCurrentBid(a.getCurrentBid() + 1.00);
 		a.setOwner(username);
 	}
 
-	public HashMap<Integer, Auction> getAuctionItems() {
+	public HashMap<Long, Auction> getAuctionItems() {
 		return this.auctionItems;
 	}
 	
 	public IPredicate<Auction> parse(String searchString) {
 		searchString = searchString.replace(" ", "");
+		if(searchString.isEmpty()) {
+			return new ContainsPredicate("");
+		}
 		while(searchString.length() > 0) {
 			if(searchString.startsWith("OR")) {
 				while(!opStack.empty() && opStack.peek() == SearchOperator.AND) {
@@ -113,10 +150,6 @@ public class InMemoryAuctionService implements IAuctionService {
 					else if(orIndex > 0 &&  (orIndex < andIndex || andIndex == -1)) {
 						keywordEndIndex = orIndex;
 					}
-					
-//					System.out.println("[!] andIndex = " + andIndex);
-//					System.out.println("[!] orIndex = " + orIndex);
-//					System.out.println("[!] keywordEndIndex = " + keywordEndIndex);
 					if(keywordEndIndex >= 0) {
 						keyword = searchString.substring(0, keywordEndIndex);
 					}
@@ -129,11 +162,8 @@ public class InMemoryAuctionService implements IAuctionService {
 					searchString = searchString.substring(keyword.length());
 					ContainsPredicate contp = new ContainsPredicate(keyword);
 					predStack.push(contp);
-					//System.out.println("[+] pushed new Contains onto predStack: " + contp);
 				}
 			}
-//			System.out.println("[!] searchString length: " + searchString.length());
-//			System.out.println("[!] searchString = " + searchString);
 		}
 		while(!opStack.empty()) {
 			SearchOperator op = opStack.pop();
@@ -147,14 +177,9 @@ public class InMemoryAuctionService implements IAuctionService {
 				predStack.push(new AndPredicate(p1, p2));
 				break;
 			default:
-				//System.out.println("\n[!]Something broke!\n");
 				break;
 			}
 		}
-		//System.out.println("\n[+] done.\n");
-//		while(!predStack.empty()) {
-//			System.out.println(predStack.pop());
-//		}
 		return predStack.pop();
 	}
 }

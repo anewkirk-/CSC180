@@ -1,4 +1,4 @@
-package labs.two;
+package labs.three;
 
 public class AndPredicate implements IPredicate<Auction> {
 	
@@ -20,6 +20,4 @@ public class AndPredicate implements IPredicate<Auction> {
 	public String toString() {
 		return "[" + p1 + " AND " + p2 + "]";
 	}
-
-
 }

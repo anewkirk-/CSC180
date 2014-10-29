@@ -1,21 +1,21 @@
-package labs.two;
+package labs.three;
 
 public class IdMismatchException extends Exception {
 
 	private static final long serialVersionUID = -4965332956581140583L;
-	private Integer auctionId;
-	private Integer passedId;
+	private Long auctionId;
+	private Long passedId;
 	
-	public IdMismatchException(Integer auctionId, Integer passedId) {
+	public IdMismatchException(Long auctionId, Long passedId) {
 		this.auctionId = auctionId;
 		this.passedId = passedId;
 	}
 
-	public Integer getAuctionId() {
+	public Long getAuctionId() {
 		return this.auctionId;
 	}
 	
-	public Integer getPassedId() {
+	public Long getPassedId() {
 		return this.passedId;
 	}
 }

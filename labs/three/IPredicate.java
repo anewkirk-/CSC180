@@ -1,4 +1,4 @@
-package labs.two;
+package labs.three;
 
 
 public interface IPredicate<T> {

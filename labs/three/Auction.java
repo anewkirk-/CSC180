@@ -1,33 +1,39 @@
-package labs.two;
+package labs.three;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Auction {
 
-	private final Integer id;
+	private final Long id;
 	private Map<String, Object> properties;
 	private double currentBid;
 	private String owner;
 	private String name;
 	private String description;
+	private long timeLeftInMillis;
+	private int numberOfBidsRemaining;
 
-	public Auction(Integer id, String name, double currentBid) {
+	public Auction(Long id, String name, double currentBid) {
 		this.id = id;
 		this.name = name;
 		this.currentBid = currentBid;
 		this.description = "";
+		this.properties = new HashMap<String, Object>();
+		this.timeLeftInMillis = System.currentTimeMillis() + 604800000;
 	}
-	
-	public Auction(Integer id, String name, String description, double currentBid) {
+
+	public Auction(Long id, String name, String description, double currentBid) {
 		this(id, name, currentBid);
 		this.description = description;
 	}
 
-	public Auction(Integer id, String name, double currentBid,
+	public Auction(Long id, String name, double currentBid,
 			Map<String, Object> properties) {
 		this(id, name, currentBid);
 		this.properties = properties;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		return ((Auction) obj).id == id;
@@ -35,18 +41,18 @@ public class Auction {
 
 	@Override
 	public int hashCode() {
-		return new Integer(id).hashCode();
+		return new Long(id).hashCode();
 	}
 
 	@Override
 	public String toString() {
 		if (owner != null) {
-			return "[" + id + " | " + name + " | " + currentBid + " | " + owner;
+			return "[" + id + " | " + name + " | " + currentBid + " | " + owner + "]";
 		}
-		return "[" + id + " | " + name + " | " + currentBid;
+		return "[" + id + " | " + name + " | " + currentBid + "]";
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -105,5 +111,25 @@ public class Auction {
 	
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public int getNumberOfBidsRemaining() {
+		return numberOfBidsRemaining;
+	}
+
+	public void setNumberOfBidsRemaining(int numberOfBidsRemaining) {
+		this.numberOfBidsRemaining = numberOfBidsRemaining;
+	}
+
+	public long getTimeLeftInMillis() {
+		return timeLeftInMillis;
+	}
+
+	public void setTimeLeftInMillis(long timeLeftInMillis) {
+		this.timeLeftInMillis = timeLeftInMillis;
+	}
+	
+	public Date getEndsBy() {
+		return new Date(timeLeftInMillis);
 	}
 }

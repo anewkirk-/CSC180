@@ -1,4 +1,4 @@
-package labs.two;
+package labs.three;
 import java.util.Scanner;
 
 public class DefaultState implements IState {
