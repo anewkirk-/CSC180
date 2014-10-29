@@ -18,7 +18,7 @@ public class EventLoop {
 		if(sc == null){
 			sc = new Scanner(System.in);
 		}
-		imas = new InMemoryAuctionService("src.htm");
+		imas = new InMemoryAuctionService();
 		q1 = new LinkedList<IState>();
 		q2 = new LinkedList<IState>();
 		activeQueue = q1;
